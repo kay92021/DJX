@@ -66,9 +66,9 @@
                         </button>
                     </div>
 
-                    <a href="https://drive.google.com/drive/folders/1pta1J4saUl99hlIQJ1b23_anBEb4OZTi" target="_blank" rel="noopener" class="hidden xl:flex items-center gap-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 px-2.5 py-1.5 rounded-lg text-xs font-medium transition" title="開啟您的專屬 Google Drive 資料夾">
-                        <i class="fa-brands fa-google-drive text-emerald-400"></i>
-                        <span>雲端資料夾</span>
+                    <a href="https://kay92021.github.io/DJX/" target="_blank" rel="noopener" class="hidden lg:flex items-center gap-1.5 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 px-2.5 py-1.5 rounded-lg text-xs font-medium transition" title="開啟 GitHub 部署網站">
+                        <i class="fa-solid fa-globe text-indigo-400"></i>
+                        <span>GitHub 網址</span>
                     </a>
 
                     <button @click="downloadHtmlApp" class="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2.5 py-1.5 rounded-lg text-xs font-medium items-center gap-1.5 transition shadow-sm" title="下載含完整照片與紀錄的 HTML 軟體檔">
@@ -490,6 +490,9 @@
                     <button @click="copyShareLink" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition">
                         <i class="fa-solid fa-copy"></i> 複製共享專屬網址連結
                     </button>
+                    <a href="https://kay92021.github.io/DJX/" target="_blank" rel="noopener" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition no-underline">
+                        <i class="fa-solid fa-globe"></i> 開啟 GitHub 官方線上網站
+                    </a>
                     <button @click="downloadHtmlApp" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition">
                         <i class="fa-solid fa-file-arrow-down"></i> 下載匯出完整專案檔 (含目前資料照片)
                     </button>
@@ -542,7 +545,7 @@
         import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🔑 已自動填入您的真實 Firebase 專案設定 (djx-wr)
+        // 🔑 您的專屬 Firebase 專案設定 (djx-wr)
         // =========================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyATigQ5KBvk9dCi1pblJ4qt9tVX-GTd56w",
@@ -561,12 +564,14 @@
             if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
-                signInAnonymously(auth).catch(err => console.warn('Firebase Auth error:', err));
+                signInAnonymously(auth).then(() => {
+                    console.log("Firebase anonymous authentication successful");
+                }).catch(err => console.warn('Firebase Auth error:', err));
                 db = getFirestore(app);
                 isFirebaseReady = true;
             }
         } catch (e) {
-            console.warn('Firebase Initialization skipped or missing keys:', e);
+            console.warn('Firebase Initialization error:', e);
         }
 
         const { createApp } = Vue;
@@ -732,22 +737,33 @@
             },
             methods: {
                 setupFirebaseRealtime() {
-                    if (!isFirebaseReady || !db) return;
+                    if (!isFirebaseReady || !db) {
+                        this.isFirebaseConnected = false;
+                        return;
+                    }
                     if (this.unsubscribeDb) this.unsubscribeDb();
 
-                    const roomCol = collection(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId);
-                    this.unsubscribeDb = onSnapshot(roomCol, (snapshot) => {
-                        const cloudRecords = [];
-                        snapshot.forEach((doc) => {
-                            cloudRecords.push({ id: doc.id, ...doc.data() });
+                    try {
+                        const roomCol = collection(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId);
+                        this.unsubscribeDb = onSnapshot(roomCol, (snapshot) => {
+                            const cloudRecords = [];
+                            snapshot.forEach((doc) => {
+                                cloudRecords.push({ id: doc.id, ...doc.data() });
+                            });
+                            // 只要雲端有資料，或成功連線，即標記為連線狀態
+                            this.isFirebaseConnected = true;
+                            if (cloudRecords.length > 0) {
+                                this.records = cloudRecords;
+                                localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                            }
+                        }, (err) => {
+                            console.warn("Firebase snapshot listener error:", err);
+                            this.isFirebaseConnected = false;
                         });
-                        if (cloudRecords.length > 0) {
-                            this.records = cloudRecords;
-                            localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
-                        }
-                    }, (err) => {
-                        console.warn("Firebase snapshot listener error:", err);
-                    });
+                    } catch (e) {
+                        console.warn("Failed to setup realtime listener:", e);
+                        this.isFirebaseConnected = false;
+                    }
                 },
                 switchTab(tab) {
                     this.activeTab = tab;
