@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>會勘紀錄 行程安排</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         body {
             background-color: #003060;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-        /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -33,10 +29,8 @@
 <body class="text-slate-100 min-h-screen flex flex-col antialiased">
     <div id="app" class="flex-1 flex flex-col min-h-screen">
         
-        <!-- Navigation Header -->
         <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
-                <!-- Brand Title -->
                 <div class="flex items-center space-x-2 shrink-0">
                     <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/30">
                         <i class="fa-solid fa-map-location-dot text-lg"></i>
@@ -47,7 +41,6 @@
                     </div>
                 </div>
 
-                <!-- Navigation Tabs (Desktop) -->
                 <div class="hidden md:flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
                     <button @click="switchTab('list')" :class="activeTab === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
                         <i class="fa-solid fa-list-check"></i> 會勘紀錄
@@ -63,7 +56,6 @@
                     </button>
                 </div>
 
-                <!-- Shared Controls & Room Actions -->
                 <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
                     <div class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center space-x-1.5 text-xs">
                         <span :class="isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'" class="inline-block w-2 h-2 rounded-full shrink-0"></span>
@@ -74,13 +66,11 @@
                         </button>
                     </div>
 
-                    <!-- Direct Google Drive Folder Link -->
                     <a href="https://drive.google.com/drive/folders/1pta1J4saUl99hlIQJ1b23_anBEb4OZTi" target="_blank" rel="noopener" class="hidden xl:flex items-center gap-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 px-2.5 py-1.5 rounded-lg text-xs font-medium transition" title="開啟您的專屬 Google Drive 資料夾">
                         <i class="fa-brands fa-google-drive text-emerald-400"></i>
                         <span>雲端資料夾</span>
                     </a>
 
-                    <!-- Download HTML Bundle -->
                     <button @click="downloadHtmlApp" class="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2.5 py-1.5 rounded-lg text-xs font-medium items-center gap-1.5 transition shadow-sm" title="下載含完整照片與紀錄的 HTML 軟體檔">
                         <i class="fa-solid fa-file-code text-blue-400"></i>
                         <span class="hidden lg:inline">匯出備份檔</span>
@@ -99,15 +89,12 @@
             <!-- Tab 1: Inspection Records List -->
             <div v-if="activeTab === 'list'" class="space-y-4">
                 
-                <!-- Action Bar & Search -->
                 <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/70 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                    <!-- Search Box -->
                     <div class="relative flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                         <input type="text" v-model="searchQuery" placeholder="搜尋會勘路段、地點、聯絡人姓名..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
                     </div>
 
-                    <!-- Date Taxonomy Filter -->
                     <div class="flex flex-wrap items-center gap-2">
                         <select v-model="selectedYear" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
                             <option value="">全部年份</option>
@@ -122,13 +109,11 @@
                         </button>
                     </div>
 
-                    <!-- New Record Button -->
                     <button @click="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition shrink-0">
                         <i class="fa-solid fa-plus text-sm"></i> 增加會勘紀錄
                     </button>
                 </div>
 
-                <!-- Status Filter Pills (Updated Statuses) -->
                 <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs custom-scrollbar">
                     <button @click="statusFilter = 'ALL'" :class="statusFilter === 'ALL' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg border border-slate-700 transition shrink-0">
                         全部 ({{ records.length }})
@@ -144,18 +129,15 @@
                     </button>
                 </div>
 
-                <!-- Empty State -->
                 <div v-if="filteredRecords.length === 0" class="bg-slate-800/60 rounded-2xl p-12 text-center border border-dashed border-slate-700 text-slate-400 space-y-3">
                     <i class="fa-regular fa-folder-open text-4xl text-slate-500"></i>
                     <p class="text-sm">尚未有符合條件的會勘紀錄</p>
                     <button @click="openModal()" class="text-xs text-blue-400 hover:underline">點擊新增第一筆會勘紀錄</button>
                 </div>
 
-                <!-- Records Grid -->
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div v-for="item in filteredRecords" :key="item.id" class="bg-slate-800 rounded-2xl border border-slate-700/80 shadow-md p-4 flex flex-col justify-between hover:border-slate-600 transition space-y-3">
                         <div class="space-y-2.5">
-                            <!-- Card Header: Status & Actions -->
                             <div class="flex items-center justify-between">
                                 <span :class="getStatusBadgeClass(item.status)" class="px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
                                     <i :class="getStatusIcon(item.status)"></i> {{ getStatusLabel(item.status) }}
@@ -170,13 +152,11 @@
                                 </div>
                             </div>
 
-                            <!-- Road Section Title -->
                             <h3 class="font-bold text-white text-sm line-clamp-2 flex items-start gap-1.5">
                                 <i class="fa-solid fa-location-dot text-red-400 mt-0.5 shrink-0"></i>
                                 <span>{{ item.roadSection || '未提供路段名稱' }}</span>
                             </h3>
 
-                            <!-- Contact Info -->
                             <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex items-center justify-between text-xs">
                                 <div class="truncate pr-2">
                                     <span class="font-semibold text-slate-200 block truncate">{{ item.contactName || '未填寫聯絡人' }}</span>
@@ -187,7 +167,6 @@
                                 </a>
                             </div>
 
-                            <!-- Dates Info -->
                             <div class="text-xs space-y-1 text-slate-300">
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-400 text-[11px]"><i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i>會勘日期：</span>
@@ -199,19 +178,17 @@
                                 </div>
                             </div>
 
-                            <!-- Description -->
                             <p v-if="item.description" class="text-xs text-slate-400 line-clamp-2 bg-slate-900/40 p-2 rounded-lg border border-slate-700/30">
                                 {{ item.description }}
                             </p>
 
-                            <!-- Photo Thumbnails -->
                             <div v-if="item.photos && item.photos.length > 0" class="pt-1">
                                 <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
                                     <span><i class="fa-solid fa-camera text-indigo-400 mr-1"></i>現場照片 ({{ item.photos.length }})</span>
                                 </div>
                                 <div class="grid grid-cols-4 gap-1.5">
                                     <div v-for="(photo, idx) in item.photos.slice(0, 4)" :key="idx" @click="openLightbox(item.photos, idx)" class="aspect-square bg-slate-900 rounded-lg overflow-hidden relative cursor-pointer group border border-slate-700">
-                                        <img :src="photo.url" class="w-full h-full object-cover group-hover:scale-105 transition">
+                                        <img :src="photo.url" class="w-full h-full object-cover group-hover:scale-105 transition" onerror="this.src='https://placehold.co/150x150/1e293b/cbd5e1?text=Image'">
                                         <div v-if="idx === 3 && item.photos.length > 4" class="absolute inset-0 bg-black/70 text-white font-bold text-[10px] flex items-center justify-center">
                                             +{{ item.photos.length - 3 }}
                                         </div>
@@ -289,7 +266,6 @@
                     尚無任何上傳的照片紀錄。
                 </div>
 
-                <!-- Album Mode -->
                 <div v-else-if="galleryViewMode === 'album'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div v-for="album in albumsList" :key="album.recordId" class="bg-slate-800 rounded-2xl border border-slate-700/80 overflow-hidden shadow-md space-y-2 p-3.5">
                         <div class="flex items-start justify-between border-b border-slate-700 pb-2">
@@ -305,10 +281,9 @@
                             </span>
                         </div>
 
-                        <!-- Album Thumbnails -->
                         <div class="grid grid-cols-2 gap-2">
                             <div v-for="(img, idx) in album.photos.slice(0, 4)" :key="idx" @click="openLightbox(album.photos, idx)" class="aspect-video bg-slate-900 rounded-lg overflow-hidden relative cursor-pointer border border-slate-700 group">
-                                <img :src="img.url" class="w-full h-full object-cover group-hover:scale-105 transition">
+                                <img :src="img.url" class="w-full h-full object-cover group-hover:scale-105 transition" onerror="this.src='https://placehold.co/150x150/1e293b/cbd5e1?text=Image'">
                                 <div v-if="idx === 3 && album.photos.length > 4" class="absolute inset-0 bg-black/70 text-white font-bold text-xs flex items-center justify-center">
                                     +{{ album.photos.length - 3 }} 張
                                 </div>
@@ -321,10 +296,9 @@
                     </div>
                 </div>
 
-                <!-- Grid Mode -->
                 <div v-else-if="galleryViewMode === 'grid'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <div v-for="(photo, idx) in allPhotos" :key="idx" @click="openLightbox(allPhotos, idx)" class="aspect-square bg-slate-900 rounded-xl overflow-hidden relative cursor-pointer border border-slate-700 group">
-                        <img :src="photo.url" class="w-full h-full object-cover group-hover:scale-105 transition">
+                        <img :src="photo.url" class="w-full h-full object-cover group-hover:scale-105 transition" onerror="this.src='https://placehold.co/150x150/1e293b/cbd5e1?text=Image'">
                         <div class="absolute inset-x-0 bottom-0 bg-black/80 p-1.5 text-[10px] text-white truncate">
                             {{ photo.roadSection }}
                         </div>
@@ -372,13 +346,11 @@
                 </div>
 
                 <div class="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
-                    <!-- Road Section -->
                     <div class="space-y-1">
                         <label class="font-bold text-slate-200">會勘路段名稱 / 地點 <span class="text-red-400">*</span></label>
                         <input type="text" v-model="form.roadSection" placeholder="例如：台西鄉和豐村 23.729217N, 120.226970E" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
                     </div>
 
-                    <!-- Status Selection (Modified Title & Options) -->
                     <div class="space-y-1">
                         <label class="font-bold text-slate-200 flex items-center gap-1.5">
                             <i class="fa-solid fa-bars-staggered text-amber-400"></i> 會勘執行狀態
@@ -390,7 +362,7 @@
                         </select>
                     </div>
 
-                    <!-- Contact Person & Dropdown Select Auto-fill -->
+                    <!-- Contact Person Section -->
                     <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/70 space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -398,31 +370,29 @@
                             </span>
                         </div>
 
-                        <!-- Dropdown Select Existing Contact -->
-                        <div class="space-y-1">
-                            <label class="text-slate-400 text-[11px]">快速選取歷史聯絡人：</label>
-                            <select v-model="form.selectedContactDropdown" @change="onSelectContactDropdown" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-amber-200 focus:outline-none focus:border-blue-500">
-                                <option value="">-- 請選擇歷史聯絡人以自動帶入名稱與電話 --</option>
-                                <option v-for="c in uniqueContactOptions" :key="c.name" :value="c.name">
-                                    👤 {{ c.name }} ({{ c.phone || '無電話' }})
-                                </option>
-                            </select>
-                        </div>
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="space-y-1 relative">
-                                <label class="text-slate-300">聯絡人姓名</label>
-                                <input type="text" v-model="form.contactName" @input="onContactNameChange" placeholder="例如：林培煌 村長" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                            <div class="space-y-1">
+                                <label class="text-slate-300 font-bold">聯絡人姓名 (可直接輸入或下拉選取)</label>
+                                <div class="relative">
+                                    <input type="text" list="contact-suggestions" v-model="form.contactName" @input="onContactNameChange" placeholder="例如：林培煌 村長" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 pr-8">
+                                    <datalist id="contact-suggestions">
+                                        <option v-for="c in uniqueContactOptions" :key="c.name" :value="c.name">
+                                            {{ c.phone ? '(' + c.phone + ')' : '' }}
+                                        </option>
+                                    </datalist>
+                                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-slate-300">聯絡電話 <span class="text-[10px] text-slate-400">(自動格式化：XXXX-XXXXXX)</span></label>
-                                <input type="text" v-model="form.contactPhone" @input="formatPhoneInput" maxlength="11" placeholder="例如：0955-250487" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500">
+                                <label class="text-slate-300 font-bold">聯絡電話 <span class="text-[10px] text-slate-400">(格式：XXXX-XXXXXX)</span></label>
+                                <input type="text" v-model="form.contactPhone" @input="formatPhoneInput" maxlength="11" placeholder="例如：0955-250487" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-white placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Simplified Dates -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1">
                             <label class="font-bold text-slate-200 flex items-center gap-1">
@@ -439,35 +409,32 @@
                         </div>
                     </div>
 
-                    <!-- Description -->
                     <div class="space-y-1">
                         <label class="font-bold text-slate-200">備註說明</label>
                         <textarea v-model="form.description" rows="2" placeholder="請填寫會勘紀錄或現場補充說明..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"></textarea>
                     </div>
 
-                    <!-- Photos Drag & Drop Area -->
+                    <!-- Photo Upload Area via GAS -->
                     <div class="space-y-2">
                         <label class="font-bold text-slate-200 flex items-center gap-1.5">
-                            <i class="fa-solid fa-camera text-indigo-400"></i> 現場照片紀錄 (上傳至 Google Drive)
+                            <i class="fa-solid fa-camera text-indigo-400"></i> 現場照片紀錄 (經由 Google Apps Script 雲端上傳)
                         </label>
                         
                         <div @dragover.prevent @drop.prevent="handleDrop" class="border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-2xl p-4 text-center bg-slate-900/50 transition cursor-pointer relative">
                             <input type="file" multiple accept="image/*" @change="handlePhotoUpload" class="absolute inset-0 opacity-0 cursor-pointer">
                             <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-400 mb-1"></i>
                             <p class="text-xs text-slate-300 font-semibold">拖曳電腦照片至此處，或點擊選取檔案</p>
-                            <p class="text-[10px] text-slate-500">照片將自動壓縮並透過 GAS 上傳至雲端</p>
+                            <p class="text-[10px] text-slate-500">圖片將進行極速壓縮並自動上傳至 Google Drive</p>
                         </div>
 
-                        <!-- Upload Progress Indicator -->
                         <div v-if="isUploadingPhotos" class="bg-blue-950/80 border border-blue-500/50 p-2.5 rounded-xl text-xs text-blue-200 flex items-center gap-2">
                             <i class="fa-solid fa-spinner fa-spin text-amber-400"></i>
-                            <span>正在上傳照片至 Google Drive 雲端中 ({{ uploadedPhotoCount }}/{{ totalPhotosToUpload }})，請稍候...</span>
+                            <span>正在上傳照片至 GAS 雲端後台 ({{ uploadedPhotoCount }}/{{ totalPhotosToUpload }})，請稍候...</span>
                         </div>
 
-                        <!-- Photos Preview Grid -->
                         <div v-if="form.photos.length > 0" class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
                             <div v-for="(img, idx) in form.photos" :key="idx" class="relative aspect-square rounded-lg overflow-hidden bg-slate-900 border border-slate-700 group">
-                                <img :src="img.url" class="w-full h-full object-cover">
+                                <img :src="img.url" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/150x150/1e293b/cbd5e1?text=Image'">
                                 <button @click="removePhoto(idx)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
@@ -539,7 +506,7 @@
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
             <div class="max-w-4xl max-h-[85vh] flex items-center justify-center">
-                <img :src="lightbox.images[lightbox.index] ? lightbox.images[lightbox.index].url : ''" class="max-w-full max-h-[85vh] object-contain rounded-lg">
+                <img :src="lightbox.images[lightbox.index] ? lightbox.images[lightbox.index].url : ''" class="max-w-full max-h-[85vh] object-contain rounded-lg" onerror="this.src='https://placehold.co/600x400/1e293b/cbd5e1?text=Image'">
             </div>
             <button @click="nextPhoto" class="absolute right-4 text-white hover:text-slate-300 text-2xl p-2">
                 <i class="fa-solid fa-chevron-right"></i>
@@ -575,18 +542,18 @@
         import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🔑 請在此處填入您的 Firebase 設定檔：
+        // 🔑 已自動填入您的真實 Firebase 專案設定 (djx-wr)
         // =========================================================================
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyATigQ5KBvk9dCi1pblJ4qt9tVX-GTd56w",
+            authDomain: "djx-wr.firebaseapp.com",
+            projectId: "djx-wr",
+            storageBucket: "djx-wr.firebasestorage.app",
+            messagingSenderId: "16922334616",
+            appId: "1:16922334616:web:1e90d014d856c7532487ed",
+            measurementId: "G-0MG7SJTQYP"
         };
 
-        // Initialize Firebase
         let db = null;
         let isFirebaseReady = false;
 
@@ -604,7 +571,7 @@
 
         const { createApp } = Vue;
 
-        const vueApp = createApp({
+        createApp({
             data() {
                 return {
                     activeTab: 'list',
@@ -631,14 +598,13 @@
                     form: {
                         id: '',
                         roadSection: '',
-                        status: 'UNSCHEDULED', // Default to 行程待安排
+                        status: 'UNSCHEDULED',
                         contactName: '',
                         contactPhone: '',
                         inspectionTime: '',
                         workStartTime: '',
                         description: '',
-                        photos: [],
-                        selectedContactDropdown: ''
+                        photos: []
                     },
 
                     lightbox: {
@@ -734,7 +700,6 @@
                 }
             },
             mounted() {
-                // Read query parameter for room if present
                 const urlParams = new URLSearchParams(window.location.search);
                 const roomParam = urlParams.get('room');
                 if (roomParam) {
@@ -763,7 +728,6 @@
                     }
                 }
 
-                // Subscribe to Firebase if configured
                 this.setupFirebaseRealtime();
             },
             methods: {
@@ -797,7 +761,6 @@
                     if (record) {
                         this.isEditMode = true;
                         this.form = JSON.parse(JSON.stringify(record));
-                        this.form.selectedContactDropdown = '';
                     } else {
                         this.isEditMode = false;
                         this.form = {
@@ -809,8 +772,7 @@
                             inspectionTime: new Date().toISOString().split('T')[0],
                             workStartTime: '',
                             description: '',
-                            photos: [],
-                            selectedContactDropdown: ''
+                            photos: []
                         };
                     }
                     this.showModal = true;
@@ -818,23 +780,14 @@
                 closeModal() {
                     this.showModal = false;
                 },
-                onSelectContactDropdown() {
-                    const selectedName = this.form.selectedContactDropdown;
-                    if (!selectedName) return;
-                    const match = this.uniqueContactOptions.find(c => c.name === selectedName);
-                    if (match) {
-                        this.form.contactName = match.name;
-                        this.form.contactPhone = match.phone || '';
-                    }
-                },
                 onContactNameChange() {
                     const match = this.uniqueContactOptions.find(c => c.name === this.form.contactName);
-                    if (match) {
-                        this.form.contactPhone = match.phone || '';
+                    if (match && match.phone) {
+                        this.form.contactPhone = match.phone;
                     }
                 },
                 formatPhoneInput(e) {
-                    let val = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+                    let val = e.target.value.replace(/\D/g, ''); // 只保留數字
                     if (val.length > 10) {
                         val = val.slice(0, 10);
                     }
@@ -868,7 +821,6 @@
                     for (const file of imageFiles) {
                         try {
                             const compressedDataUrl = await this.compressImageToDataUrl(file, 800, 0.65);
-                            // Extract base64 string without prefix
                             const base64Index = compressedDataUrl.indexOf('base64,');
                             const base64String = base64Index !== -1 ? compressedDataUrl.substring(base64Index + 7) : compressedDataUrl;
                             const mimeType = file.type || 'image/jpeg';
@@ -880,32 +832,30 @@
                                 base64: base64String
                             };
 
-                            const response = await fetch(gasUrl, {
-                                method: 'POST',
-                                mode: 'no-cors', // Standard Google Apps Script deployment workaround
-                                headers: {
-                                    'Content-Type': 'text/plain;charset=utf-8'
-                                },
-                                body: JSON.stringify(payload)
-                            });
+                            let photoDirectUrl = compressedDataUrl; // 預設先用預覽圖
 
-                            // Since 'no-cors' returns an opaque response, we can also support standard fetch if user configured CORS,
-                            // or fallback to image preview URL if GAS direct response is parsed. Let's try fetching normally first or parse response if allowed.
-                            // To be robust with Google Apps Script Web Apps which often return JSON via CORS or redirect:
-                            let photoDirectUrl = compressedDataUrl; // Fallback to compressed local preview immediately
-                            
                             try {
                                 const res = await fetch(gasUrl, {
                                     method: 'POST',
+                                    mode: 'no-cors',
+                                    headers: {
+                                        'Content-Type': 'text/plain;charset=utf-8'
+                                    },
                                     body: JSON.stringify(payload)
                                 });
-                                const result = await res.json();
+                                
+                                // 因為 Google Apps Script 跨域限制，使用 no-cors 模式會回傳 opaque 回應。
+                                // 同時我們也嘗試標準 fetch 取得直連網址：
+                                const resDirect = await fetch(gasUrl, {
+                                    method: 'POST',
+                                    body: JSON.stringify(payload)
+                                });
+                                const result = await resDirect.json();
                                 if (result && result.status === 'success' && result.url) {
                                     photoDirectUrl = result.url;
                                 }
                             } catch (err) {
-                                // If CORS blocks direct json read, use compressed local preview or we can attempt standard GET/POST.
-                                // Many GAS apps work with no-cors or standard JSON. We keep compressedDataUrl as safe fallback.
+                                // 若跨域阻擋則以壓縮預覽圖作為穩定回退
                             }
 
                             this.form.photos.push({ url: photoDirectUrl });
@@ -948,10 +898,7 @@
                         alert('請輸入會勘路段名稱！');
                         return;
                     }
-                    // Clean up temporary UI helper property before saving
-                    delete this.form.selectedContactDropdown;
 
-                    // Auto-save contact info if provided
                     if (this.form.contactName) {
                         const existsIndex = this.savedContacts.findIndex(c => c.name === this.form.contactName);
                         if (existsIndex === -1) {
@@ -971,7 +918,6 @@
 
                     localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
 
-                    // Sync to Firebase if available
                     if (isFirebaseReady && db) {
                         try {
                             const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, this.form.id);
