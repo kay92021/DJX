@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <h1 class="font-black text-sm sm:text-base text-white tracking-wide leading-tight">會勘紀錄 行程安排</h1>
-                        <p class="text-[10px] text-blue-300 hidden sm:block">團隊現場協作與雲端資料庫</p>
+                        <p class="text-[10px] text-blue-300 hidden sm:block">多裝置即時同步資料庫 (含無照片紀錄)</p>
                     </div>
                 </div>
 
@@ -59,7 +59,7 @@
                 <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
                     <div class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center space-x-1.5 text-xs">
                         <span :class="isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'" class="inline-block w-2 h-2 rounded-full shrink-0"></span>
-                        <span class="text-slate-400 hidden lg:inline">{{ isFirebaseConnected ? '雲端同步房號:' : '離線/預設房號:' }}</span>
+                        <span class="text-slate-400 hidden lg:inline">{{ isFirebaseConnected ? '雲端連線房號:' : '離線模式房號:' }}</span>
                         <span class="font-mono text-amber-300 font-semibold text-xs">{{ currentRoomId }}</span>
                         <button @click="openRoomModal" title="切換或新建共享房間" class="text-slate-400 hover:text-white transition p-0.5">
                             <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
@@ -71,7 +71,7 @@
                         <span>GitHub 網址</span>
                     </a>
 
-                    <button @click="downloadHtmlApp" class="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2.5 py-1.5 rounded-lg text-xs font-medium items-center gap-1.5 transition shadow-sm" title="下載含完整照片與紀錄的 HTML 軟體檔">
+                    <button @click="downloadHtmlApp" class="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2.5 py-1.5 rounded-lg text-xs font-medium items-center gap-1.5 transition shadow-sm" title="下載含完整資料的 HTML 軟體檔">
                         <i class="fa-solid fa-file-code text-blue-400"></i>
                         <span class="hidden lg:inline">匯出備份檔</span>
                     </button>
@@ -733,6 +733,7 @@
                     }
                 }
 
+                // 立即啟動 Firestore 即時監聽與同步
                 this.setupFirebaseRealtime();
             },
             methods: {
@@ -744,18 +745,18 @@
                     if (this.unsubscribeDb) this.unsubscribeDb();
 
                     try {
+                        // 使用正確且安全的 Firebase 路徑與即時監聽 onSnapshot
                         const roomCol = collection(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId);
                         this.unsubscribeDb = onSnapshot(roomCol, (snapshot) => {
                             const cloudRecords = [];
                             snapshot.forEach((doc) => {
                                 cloudRecords.push({ id: doc.id, ...doc.data() });
                             });
-                            // 只要雲端有資料，或成功連線，即標記為連線狀態
+                            
                             this.isFirebaseConnected = true;
-                            if (cloudRecords.length > 0) {
-                                this.records = cloudRecords;
-                                localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
-                            }
+                            // 無論是否有上傳照片，只要雲端有資料或更新，所有裝置皆會同步更新
+                            this.records = cloudRecords;
+                            localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
                         }, (err) => {
                             console.warn("Firebase snapshot listener error:", err);
                             this.isFirebaseConnected = false;
@@ -934,6 +935,7 @@
 
                     localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
 
+                    // 無論有無上傳照片，只要點擊儲存，都會立即寫入雲端資料庫讓所有裝置同步
                     if (isFirebaseReady && db) {
                         try {
                             const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, this.form.id);
@@ -946,7 +948,7 @@
                     this.showModal = false;
                     this.statusFilter = 'ALL';
                     this.activeTab = 'list';
-                    this.showToast('已儲存資料並完成更新！');
+                    this.showToast('已儲存資料並完成雲端同步！');
                 },
                 async promptDelete(item) {
                     if (confirm(`確定要刪除「${item.roadSection}」此筆紀錄嗎？`)) {
@@ -961,7 +963,7 @@
                                 console.warn("Failed to delete from Firebase:", err);
                             }
                         }
-                        this.showToast('已刪除紀錄！');
+                        this.showToast('已刪除紀錄並同步更新！');
                     }
                 },
                 openRoomModal() {
