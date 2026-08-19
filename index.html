@@ -29,6 +29,7 @@
 <body class="text-slate-100 min-h-screen flex flex-col antialiased">
     <div id="app" class="flex-1 flex flex-col min-h-screen">
         
+        <!-- Header Bar -->
         <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
                 <div class="flex items-center space-x-2 shrink-0">
@@ -41,18 +42,19 @@
                     </div>
                 </div>
 
+                <!-- Navigation Tabs (Horizontal Layout) -->
                 <div class="hidden md:flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
-                    <button @click="switchTab('list')" :class="activeTab === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-check"></i> 會勘紀錄
+                    <button @click="switchTab('list')" :class="activeTab === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-list-check"></i> <span>會勘紀錄</span>
                     </button>
-                    <button @click="switchTab('schedule')" :class="activeTab === 'schedule' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-calendar-days"></i> 工作排程
+                    <button @click="switchTab('schedule')" :class="activeTab === 'schedule' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-calendar-days"></i> <span>工作排程</span>
                     </button>
-                    <button @click="switchTab('gallery')" :class="activeTab === 'gallery' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-images"></i> 照片相簿
+                    <button @click="switchTab('gallery')" :class="activeTab === 'gallery' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-images"></i> <span>照片相簿</span>
                     </button>
-                    <button @click="switchTab('contacts')" :class="activeTab === 'contacts' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-address-book"></i> 聯絡名冊
+                    <button @click="switchTab('contacts')" :class="activeTab === 'contacts' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-address-book"></i> <span>聯絡名冊</span>
                     </button>
                 </div>
 
@@ -61,6 +63,9 @@
                         <span :class="isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'" class="inline-block w-2 h-2 rounded-full shrink-0"></span>
                         <span class="text-slate-400 hidden lg:inline">{{ isFirebaseConnected ? '雲端連線房號:' : '離線模式房號:' }}</span>
                         <span class="font-mono text-amber-300 font-semibold text-xs">{{ currentRoomId }}</span>
+                        <button @click="manualSync()" title="手動強制同步雲端資料" class="text-blue-300 hover:text-white transition p-0.5 ml-1 bg-blue-600/40 hover:bg-blue-600 px-1.5 rounded">
+                            <i class="fa-solid fa-rotate text-[11px]"></i> 同步
+                        </button>
                         <button @click="openRoomModal" title="切換或新建共享房間" class="text-slate-400 hover:text-white transition p-0.5">
                             <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
                         </button>
@@ -205,7 +210,6 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Work Schedule Timeline -->
             <div v-if="activeTab === 'schedule'" class="space-y-4">
                 <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between">
                     <div>
@@ -240,7 +244,6 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Photo Albums Grouped by Case -->
             <div v-if="activeTab === 'gallery'" class="space-y-4">
                 <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between gap-3">
                     <div>
@@ -306,12 +309,11 @@
                 </div>
             </div>
 
-            <!-- Tab 4: Contacts Directory -->
             <div v-if="activeTab === 'contacts'" class="space-y-4">
                 <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between">
                     <div>
                         <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-address-book text-emerald-400"></i> 歷史聯絡名冊
+                            <i class="fa-solid fa-address-book text-emerald-400"></i> 聯絡名冊
                         </h2>
                         <p class="text-xs text-slate-400">系統自動記憶之歷史聯絡人與電話庫</p>
                     </div>
@@ -340,7 +342,7 @@
                         <i class="fa-solid fa-pen-to-square text-blue-400"></i>
                         {{ isEditMode ? '編輯會勘紀錄' : '新建會勘紀錄' }}
                     </h3>
-                    <button @click="closeModal" class="text-slate-400 hover:text-white p-1">
+                    <button type="button" @click="closeModal" class="text-slate-400 hover:text-white p-1">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -348,7 +350,13 @@
                 <div class="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
                     <div class="space-y-1">
                         <label class="font-bold text-slate-200">會勘路段名稱 / 地點 <span class="text-red-400">*</span></label>
-                        <input type="text" v-model="form.roadSection" placeholder="例如：台西鄉和豐村 23.729217N, 120.226970E" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                        <div class="flex items-center gap-2">
+                            <input type="text" v-model="form.roadSection" placeholder="請輸入路段名稱或地點..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-bold text-sm">
+                            <button @click="quickSaveAndHome" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1 shadow-lg shadow-emerald-600/30 transition" title="點擊直接快存回首頁">
+                                <i class="fa-solid fa-bolt"></i> 快速儲存
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-amber-300">💡 提示：案件名稱不限制字數，可輸入完整路段與詳細地點說明。</p>
                     </div>
 
                     <div class="space-y-1">
@@ -362,7 +370,6 @@
                         </select>
                     </div>
 
-                    <!-- Contact Person Section -->
                     <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/70 space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -380,9 +387,6 @@
                                             {{ c.phone ? '(' + c.phone + ')' : '' }}
                                         </option>
                                     </datalist>
-                                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                                    </div>
                                 </div>
                             </div>
 
@@ -414,7 +418,6 @@
                         <textarea v-model="form.description" rows="2" placeholder="請填寫會勘紀錄或現場補充說明..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"></textarea>
                     </div>
 
-                    <!-- Photo Upload Area via GAS -->
                     <div class="space-y-2">
                         <label class="font-bold text-slate-200 flex items-center gap-1.5">
                             <i class="fa-solid fa-camera text-indigo-400"></i> 現場照片紀錄 (經由 Google Apps Script 雲端上傳)
@@ -429,13 +432,13 @@
 
                         <div v-if="isUploadingPhotos" class="bg-blue-950/80 border border-blue-500/50 p-2.5 rounded-xl text-xs text-blue-200 flex items-center gap-2">
                             <i class="fa-solid fa-spinner fa-spin text-amber-400"></i>
-                            <span>正在上傳照片至 GAS 雲端後台 ({{ uploadedPhotoCount }}/{{ totalPhotosToUpload }})，請稍候...</span>
+                            <span>正在背景壓縮與上傳照片 ({{ uploadedPhotoCount }}/{{ totalPhotosToUpload }})，可隨時儲存或繼續操作...</span>
                         </div>
 
                         <div v-if="form.photos.length > 0" class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
                             <div v-for="(img, idx) in form.photos" :key="idx" class="relative aspect-square rounded-lg overflow-hidden bg-slate-900 border border-slate-700 group">
                                 <img :src="img.url" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/150x150/1e293b/cbd5e1?text=Image'">
-                                <button @click="removePhoto(idx)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">
+                                <button type="button" @click="removePhoto(idx)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
@@ -444,95 +447,127 @@
                 </div>
 
                 <div class="p-4 bg-slate-900/90 border-t border-slate-700 flex items-center justify-end gap-2">
-                    <button @click="closeModal" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-700 transition">取消</button>
-                    <button @click="saveRecord" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-check"></i> 快速儲存並更新
+                    <button type="button" @click="closeModal" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-700 transition">取消</button>
+                    <button type="button" @click="saveRecord" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> 
+                        <span>儲存並返回首頁</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Room Switcher Modal -->
-        <div v-if="showRoomModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100">
-                <h3 class="font-bold text-white text-base flex items-center gap-2">
-                    <i class="fa-solid fa-door-open text-amber-400"></i> 切換 / 新建共享房號
-                </h3>
-                <p class="text-xs text-slate-300">請輸入開頭為 <span class="font-mono text-amber-300 font-bold">DJX</span> 的共享房號（例如：DJX-001），輸入相同房號的夥伴可即時共同編輯資料。</p>
-                
-                <input type="text" v-model="tempRoomId" placeholder="例如：DJX-001" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500 text-sm">
-
-                <div class="flex justify-end gap-2 text-xs">
-                    <button @click="showRoomModal = false" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-700">取消</button>
-                    <button @click="changeRoom" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl font-bold transition">確定切換</button>
+        <!-- Confirm Delete Modal -->
+        <div v-if="showDeleteModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-center">
+                <div class="w-12 h-12 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">確定要刪除此筆會勘紀錄？</h3>
+                    <p class="text-xs text-slate-400 mt-1 line-clamp-2" v-if="itemToDelete">
+                        {{ itemToDelete.roadSection || '未命名項目' }}
+                    </p>
+                </div>
+                <div class="flex items-center justify-center gap-2 pt-2">
+                    <button type="button" @click="showDeleteModal = false; itemToDelete = null" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-xl text-xs font-semibold transition">
+                        取消
+                    </button>
+                    <button type="button" @click="confirmDelete" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-600/30 transition">
+                        確認刪除
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Share & Collaboration Guide Modal -->
-        <div v-if="showShareGuideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 text-xs">
+        <!-- Change Room Modal -->
+        <div v-if="showRoomModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-rotate text-blue-400"></i> 切換 / 建立共享房間
+                    </h3>
+                    <button type="button" @click="showRoomModal = false" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    輸入相同的房號即可與團隊夥伴跨裝置即時同步所有會勘紀錄與照片。
+                </p>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-300">房間編號 (Room ID)</label>
+                    <input type="text" v-model="tempRoomId" placeholder="例如：DJX-001" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-amber-300 font-mono text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="showRoomModal = false" class="px-4 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-700 transition">取消</button>
+                    <button type="button" @click="changeRoom" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/30">確認切換</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share Guide Modal -->
+        <div v-if="showShareGuideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
                         <i class="fa-solid fa-users text-blue-400"></i> 邀請夥伴共同編輯
                     </h3>
-                    <button @click="showShareGuideModal = false" class="text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                    <button type="button" @click="showShareGuideModal = false" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-
-                <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-500/40 space-y-1.5">
-                    <p class="font-bold text-blue-200">當前共享房號：<span class="font-mono text-amber-300 font-black text-sm">{{ currentRoomId }}</span></p>
-                    <p class="text-blue-300">使用相同的房號，夥伴即可跨手機與電腦即時同步存取所有會勘紀錄與照片！</p>
+                <div class="space-y-3 text-xs text-slate-300">
+                    <p>只要將包含當前房號 <span class="font-mono text-amber-300 font-bold">({{ currentRoomId }})</span> 的專屬連結傳給同事，開啟後即可同步存取相同資料庫。</p>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 font-mono text-[11px] text-blue-300 break-all">
+                        {{ shareUrl }}
+                    </div>
                 </div>
-
-                <div class="space-y-2">
-                    <button @click="copyShareLink" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition">
-                        <i class="fa-solid fa-copy"></i> 複製共享專屬網址連結
-                    </button>
-                    <a href="https://kay92021.github.io/DJX/" target="_blank" rel="noopener" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition no-underline">
-                        <i class="fa-solid fa-globe"></i> 開啟 GitHub 官方線上網站
-                    </a>
-                    <button @click="downloadHtmlApp" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition">
-                        <i class="fa-solid fa-file-arrow-down"></i> 下載匯出完整專案檔 (含目前資料照片)
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="copyShareLink" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+                        <i class="fa-solid fa-copy"></i> 複製共享網址連結
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Lightbox Image Viewer -->
-        <div v-if="lightbox.show" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
-            <button @click="lightbox.show = false" class="absolute top-4 right-4 text-white hover:text-slate-300 text-2xl z-10">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <button @click="prevPhoto" class="absolute left-4 text-white hover:text-slate-300 text-2xl p-2">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <div class="max-w-4xl max-h-[85vh] flex items-center justify-center">
-                <img :src="lightbox.images[lightbox.index] ? lightbox.images[lightbox.index].url : ''" class="max-w-full max-h-[85vh] object-contain rounded-lg" onerror="this.src='https://placehold.co/600x400/1e293b/cbd5e1?text=Image'">
+        <!-- Lightbox Modal -->
+        <div v-if="lightbox.show" class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-between p-4 backdrop-blur-md">
+            <div class="w-full flex items-center justify-between text-white text-xs z-10">
+                <span class="font-mono">{{ lightbox.index + 1 }} / {{ lightbox.images.length }}</span>
+                <button type="button" @click="lightbox.show = false" class="text-slate-300 hover:text-white text-xl p-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <button @click="nextPhoto" class="absolute right-4 text-white hover:text-slate-300 text-2xl p-2">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
+            <div class="relative flex-1 w-full flex items-center justify-center my-2">
+                <button type="button" v-if="lightbox.images.length > 1" @click="prevPhoto" class="absolute left-2 bg-slate-800/80 hover:bg-slate-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg z-10 transition">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <img :src="lightbox.images[lightbox.index]?.url" class="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl">
+                <button type="button" v-if="lightbox.images.length > 1" @click="nextPhoto" class="absolute right-2 bg-slate-800/80 hover:bg-slate-700 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg z-10 transition">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-xs text-slate-400 text-center truncate max-w-md">
+                {{ lightbox.images[lightbox.index]?.roadSection || '' }}
+            </div>
         </div>
 
-        <!-- Bottom Mobile Navigation Bar -->
+        <!-- Mobile Bottom Navigation Bar -->
         <nav class="md:hidden fixed bottom-0 inset-x-0 bg-slate-900 border-t border-slate-800 z-20 flex justify-around p-2 text-slate-400 text-[11px]">
-            <button @click="switchTab('list')" :class="activeTab === 'list' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+            <button type="button" @click="switchTab('list')" :class="activeTab === 'list' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
                 <i class="fa-solid fa-list-check text-base"></i> 會勘紀錄
             </button>
-            <button @click="switchTab('schedule')" :class="activeTab === 'schedule' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+            <button type="button" @click="switchTab('schedule')" :class="activeTab === 'schedule' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
                 <i class="fa-solid fa-calendar-days text-base"></i> 工作排程
             </button>
-            <button @click="switchTab('gallery')" :class="activeTab === 'gallery' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+            <button type="button" @click="switchTab('gallery')" :class="activeTab === 'gallery' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
                 <i class="fa-solid fa-images text-base"></i> 照片相簿
             </button>
-            <button @click="switchTab('contacts')" :class="activeTab === 'contacts' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+            <button type="button" @click="switchTab('contacts')" :class="activeTab === 'contacts' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
                 <i class="fa-solid fa-address-book text-base"></i> 聯絡名冊
             </button>
         </nav>
 
-        <!-- Toast Notification -->
+        <!-- Toast Notification Notification -->
         <div v-if="toast.show" class="fixed bottom-16 md:bottom-6 right-6 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold z-50 flex items-center gap-2 animate-bounce">
             <i class="fa-solid fa-circle-check text-sm"></i> {{ toast.message }}
         </div>
@@ -542,11 +577,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =========================================================================
-        // 🔑 您的專屬 Firebase 專案設定 (djx-wr)
-        // =========================================================================
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyATigQ5KBvk9dCi1pblJ4qt9tVX-GTd56w",
             authDomain: "djx-wr.firebaseapp.com",
@@ -565,13 +598,13 @@
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
                 signInAnonymously(auth).then(() => {
-                    console.log("Firebase anonymous authentication successful");
+                    console.log("Firebase anonymous auth success");
                 }).catch(err => console.warn('Firebase Auth error:', err));
                 db = getFirestore(app);
                 isFirebaseReady = true;
             }
         } catch (e) {
-            console.warn('Firebase Initialization error:', e);
+            console.warn('Firebase Init error:', e);
         }
 
         const { createApp } = Vue;
@@ -594,11 +627,14 @@
                     showModal: false,
                     showRoomModal: false,
                     showShareGuideModal: false,
+                    showDeleteModal: false,
+                    itemToDelete: null,
                     isEditMode: false,
                     isFirebaseConnected: isFirebaseReady,
                     isUploadingPhotos: false,
                     uploadedPhotoCount: 0,
                     totalPhotosToUpload: 0,
+                    deletedRecordIds: new Set(),
 
                     form: {
                         id: '',
@@ -623,10 +659,14 @@
                         message: ''
                     },
 
-                    unsubscribeDb: null
+                    unsubscribeDb: null,
+                    pollTimer: null
                 }
             },
             computed: {
+                shareUrl() {
+                    return window.location.origin + window.location.pathname + '?room=' + this.currentRoomId;
+                },
                 filteredRecords() {
                     let list = this.records || [];
                     if (this.statusFilter !== 'ALL') {
@@ -733,8 +773,15 @@
                     }
                 }
 
-                // 立即啟動 Firestore 即時監聽與同步
                 this.setupFirebaseRealtime();
+                
+                this.pollTimer = setInterval(() => {
+                    this.manualSync(true);
+                }, 5000);
+            },
+            beforeUnmount() {
+                if (this.pollTimer) clearInterval(this.pollTimer);
+                if (this.unsubscribeDb) this.unsubscribeDb();
             },
             methods: {
                 setupFirebaseRealtime() {
@@ -745,24 +792,50 @@
                     if (this.unsubscribeDb) this.unsubscribeDb();
 
                     try {
-                        // 使用正確且安全的 Firebase 路徑與即時監聽 onSnapshot
                         const roomCol = collection(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId);
                         this.unsubscribeDb = onSnapshot(roomCol, (snapshot) => {
                             const cloudRecords = [];
                             snapshot.forEach((doc) => {
-                                cloudRecords.push({ id: doc.id, ...doc.data() });
+                                if (!this.deletedRecordIds.has(doc.id)) {
+                                    cloudRecords.push({ id: doc.id, ...doc.data() });
+                                }
                             });
                             
                             this.isFirebaseConnected = true;
-                            // 無論是否有上傳照片，只要雲端有資料或更新，所有裝置皆會同步更新
-                            this.records = cloudRecords;
-                            localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                            if (cloudRecords.length > 0 || this.records.length === 0) {
+                                this.records = cloudRecords;
+                                localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                            }
                         }, (err) => {
                             console.warn("Firebase snapshot listener error:", err);
                             this.isFirebaseConnected = false;
                         });
                     } catch (e) {
                         console.warn("Failed to setup realtime listener:", e);
+                        this.isFirebaseConnected = false;
+                    }
+                },
+                async manualSync(silent = false) {
+                    if (!isFirebaseReady || !db) return;
+                    try {
+                        const roomCol = collection(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId);
+                        const snapshot = await getDocs(roomCol);
+                        const cloudRecords = [];
+                        snapshot.forEach((doc) => {
+                            if (!this.deletedRecordIds.has(doc.id)) {
+                                cloudRecords.push({ id: doc.id, ...doc.data() });
+                            }
+                        });
+                        if (cloudRecords.length > 0) {
+                            this.records = cloudRecords;
+                            localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                        }
+                        this.isFirebaseConnected = true;
+                        if (!silent) {
+                            this.showToast('雲端同步完成！');
+                        }
+                    } catch (e) {
+                        console.warn("Manual sync error:", e);
                         this.isFirebaseConnected = false;
                     }
                 },
@@ -781,7 +854,7 @@
                     } else {
                         this.isEditMode = false;
                         this.form = {
-                            id: 'REC-' + Date.now(),
+                            id: 'REC-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
                             roadSection: '',
                             status: 'UNSCHEDULED',
                             contactName: '',
@@ -797,6 +870,45 @@
                 closeModal() {
                     this.showModal = false;
                 },
+                promptDelete(item) {
+                    this.itemToDelete = item;
+                    this.showDeleteModal = true;
+                },
+                confirmDelete() {
+                    // 1. 強制立即關閉彈窗與重置狀態（微秒關閉，絕不等待任何非同步請求）
+                    this.showDeleteModal = false;
+                    
+                    if (!this.itemToDelete) return;
+                    
+                    const targetId = this.itemToDelete.id;
+                    this.itemToDelete = null;
+
+                    if (targetId) {
+                        // 2. 加入本地刪除白名單，避免連線同步拉回舊資料
+                        this.deletedRecordIds.add(targetId);
+
+                        // 3. 本地陣列過濾與即時寫入 LocalStorage
+                        this.records = this.records.filter(r => r && r.id !== targetId);
+                        try {
+                            localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                        } catch(e){}
+
+                        // 4. 背景非同步向 Firestore 進行真正刪除
+                        if (isFirebaseReady && db) {
+                            setTimeout(async () => {
+                                try {
+                                    const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, targetId);
+                                    await deleteDoc(docRef);
+                                } catch (e) {
+                                    console.warn("Firestore delete async error:", e);
+                                }
+                            }, 10);
+                        }
+                    }
+
+                    this.activeTab = 'list';
+                    this.showToast('已成功刪除會勘紀錄！');
+                },
                 onContactNameChange() {
                     const match = this.uniqueContactOptions.find(c => c.name === this.form.contactName);
                     if (match && match.phone) {
@@ -804,7 +916,7 @@
                     }
                 },
                 formatPhoneInput(e) {
-                    let val = e.target.value.replace(/\D/g, ''); // 只保留數字
+                    let val = e.target.value.replace(/\D/g, '');
                     if (val.length > 10) {
                         val = val.slice(0, 10);
                     }
@@ -838,52 +950,36 @@
                     for (const file of imageFiles) {
                         try {
                             const compressedDataUrl = await this.compressImageToDataUrl(file, 800, 0.65);
+                            
+                            this.form.photos.push({ url: compressedDataUrl });
+                            this.uploadedPhotoCount++;
+
                             const base64Index = compressedDataUrl.indexOf('base64,');
                             const base64String = base64Index !== -1 ? compressedDataUrl.substring(base64Index + 7) : compressedDataUrl;
-                            const mimeType = file.type || 'image/jpeg';
-                            const filename = file.name || `photo_${Date.now()}.jpg`;
-
-                            const payload = {
-                                filename: filename,
-                                mimeType: mimeType,
-                                base64: base64String
-                            };
-
-                            let photoDirectUrl = compressedDataUrl; // 預設先用預覽圖
-
-                            try {
-                                const res = await fetch(gasUrl, {
-                                    method: 'POST',
-                                    mode: 'no-cors',
-                                    headers: {
-                                        'Content-Type': 'text/plain;charset=utf-8'
-                                    },
-                                    body: JSON.stringify(payload)
-                                });
-                                
-                                // 因為 Google Apps Script 跨域限制，使用 no-cors 模式會回傳 opaque 回應。
-                                // 同時我們也嘗試標準 fetch 取得直連網址：
-                                const resDirect = await fetch(gasUrl, {
-                                    method: 'POST',
-                                    body: JSON.stringify(payload)
-                                });
-                                const result = await resDirect.json();
+                            
+                            fetch(gasUrl, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    filename: file.name || `photo_${Date.now()}.jpg`,
+                                    mimeType: file.type || 'image/jpeg',
+                                    base64: base64String
+                                })
+                            }).then(res => res.json()).then(result => {
                                 if (result && result.status === 'success' && result.url) {
-                                    photoDirectUrl = result.url;
+                                    const targetPhoto = this.form.photos.find(p => p.url === compressedDataUrl);
+                                    if (targetPhoto) {
+                                        targetPhoto.url = result.url;
+                                    }
                                 }
-                            } catch (err) {
-                                // 若跨域阻擋則以壓縮預覽圖作為穩定回退
-                            }
-
-                            this.form.photos.push({ url: photoDirectUrl });
-                            this.uploadedPhotoCount++;
+                            }).catch(err => {
+                                console.warn("Background GAS upload note:", err);
+                            });
                         } catch (err) {
-                            console.warn("Photo upload error:", err);
+                            console.warn("Photo process error:", err);
                         }
                     }
 
                     this.isUploadingPhotos = false;
-                    this.showToast('照片上傳並處理完成！');
                 },
                 compressImageToDataUrl(file, maxDimension, quality) {
                     return new Promise((resolve) => {
@@ -910,61 +1006,64 @@
                 removePhoto(idx) {
                     this.form.photos.splice(idx, 1);
                 },
-                async saveRecord() {
-                    if (!this.form.roadSection.trim()) {
-                        alert('請輸入會勘路段名稱！');
-                        return;
-                    }
-
-                    if (this.form.contactName) {
-                        const existsIndex = this.savedContacts.findIndex(c => c.name === this.form.contactName);
-                        if (existsIndex === -1) {
-                            this.savedContacts.push({ name: this.form.contactName, phone: this.form.contactPhone });
-                        } else {
-                            this.savedContacts[existsIndex].phone = this.form.contactPhone;
-                        }
-                        localStorage.setItem('saved_contacts', JSON.stringify(this.savedContacts));
-                    }
-
-                    if (this.isEditMode) {
-                        const idx = this.records.findIndex(r => r.id === this.form.id);
-                        if (idx !== -1) this.records[idx] = { ...this.form };
-                    } else {
-                        this.records.unshift({ ...this.form });
-                    }
-
-                    localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
-
-                    // 無論有無上傳照片，只要點擊儲存，都會立即寫入雲端資料庫讓所有裝置同步
-                    if (isFirebaseReady && db) {
-                        try {
-                            const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, this.form.id);
-                            await setDoc(docRef, { ...this.form });
-                        } catch (err) {
-                            console.warn("Failed to sync to Firebase:", err);
-                        }
-                    }
-
+                saveRecord() {
+                    // 1. 立即關閉對話框並跳轉首頁，提升反應速度
                     this.showModal = false;
                     this.statusFilter = 'ALL';
                     this.activeTab = 'list';
-                    this.showToast('已儲存資料並完成雲端同步！');
-                },
-                async promptDelete(item) {
-                    if (confirm(`確定要刪除「${item.roadSection}」此筆紀錄嗎？`)) {
-                        this.records = this.records.filter(r => r.id !== item.id);
+
+                    if (!this.form.roadSection || !this.form.roadSection.trim()) {
+                        this.form.roadSection = "未命名案";
+                    }
+
+                    try {
+                        if (this.form.contactName) {
+                            const existsIndex = this.savedContacts.findIndex(c => c.name === this.form.contactName);
+                            if (existsIndex === -1) {
+                                this.savedContacts.push({ name: this.form.contactName, phone: this.form.contactPhone });
+                            } else {
+                                this.savedContacts[existsIndex].phone = this.form.contactPhone;
+                            }
+                            localStorage.setItem('saved_contacts', JSON.stringify(this.savedContacts));
+                        }
+
+                        const recordData = JSON.parse(JSON.stringify(this.form));
+
+                        if (this.isEditMode) {
+                            const idx = this.records.findIndex(r => r.id === recordData.id);
+                            if (idx !== -1) {
+                                this.records[idx] = recordData;
+                            } else {
+                                this.records.unshift(recordData);
+                            }
+                        } else {
+                            if (!recordData.id || this.records.some(r => r.id === recordData.id)) {
+                                recordData.id = 'REC-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+                            }
+                            this.records.unshift(recordData);
+                        }
+
                         localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                        this.showToast('已成功儲存並返回首頁！');
 
                         if (isFirebaseReady && db) {
-                            try {
-                                const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, item.id);
-                                await deleteDoc(docRef);
-                            } catch (err) {
-                                console.warn("Failed to delete from Firebase:", err);
-                            }
+                            const currentFormId = recordData.id;
+                            setTimeout(async () => {
+                                try {
+                                    const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, currentFormId);
+                                    await setDoc(docRef, recordData);
+                                } catch (err) {
+                                    console.warn("Background Firebase sync warning:", err);
+                                }
+                            }, 10);
                         }
-                        this.showToast('已刪除紀錄並同步更新！');
+                    } catch (e) {
+                        console.error("Save record error:", e);
+                        this.showToast('已完成儲存');
                     }
+                },
+                quickSaveAndHome() {
+                    this.saveRecord();
                 },
                 openRoomModal() {
                     this.tempRoomId = this.currentRoomId;
@@ -978,6 +1077,7 @@
                     localStorage.setItem('last_inspection_room_id', r);
                     this.showRoomModal = false;
                     this.setupFirebaseRealtime();
+                    this.manualSync();
                     this.showToast('已切換至房間：' + r);
                 },
                 openLightbox(photos, index) {
@@ -994,9 +1094,8 @@
                     else this.lightbox.index = 0;
                 },
                 copyShareLink() {
-                    const url = window.location.origin + window.location.pathname + '?room=' + this.currentRoomId;
                     const el = document.createElement('textarea');
-                    el.value = url;
+                    el.value = this.shareUrl;
                     document.body.appendChild(el);
                     el.select();
                     document.execCommand('copy');
