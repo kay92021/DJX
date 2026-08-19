@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會勘紀錄 行程安排</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            background-color: #003060;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.1);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.5);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased">
+    <div id="app" class="flex-1 flex flex-col min-h-screen">
+        
+        <!-- Navigation Header -->
+        <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+                <!-- Brand Title -->
+                <div class="flex items-center space-x-2 shrink-0">
+                    <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/30">
+                        <i class="fa-solid fa-map-location-dot text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-black text-sm sm:text-base text-white tracking-wide leading-tight">會勘紀錄 行程安排</h1>
+                        <p class="text-[10px] text-blue-300 hidden sm:block">團隊現場協作與雲端資料庫</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Desktop) -->
+                <div class="hidden md:flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
+                    <button @click="switchTab('list')" :class="activeTab === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check"></i> 會勘紀錄
+                    </button>
+                    <button @click="switchTab('schedule')" :class="activeTab === 'schedule' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days"></i> 工作排程
+                    </button>
+                    <button @click="switchTab('gallery')" :class="activeTab === 'gallery' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-images"></i> 照片相簿
+                    </button>
+                    <button @click="switchTab('contacts')" :class="activeTab === 'contacts' ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:text-white'" class="px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-address-book"></i> 聯絡名冊
+                    </button>
+                </div>
+
+                <!-- Shared Controls & Room Actions -->
+                <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                    <div class="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 flex items-center space-x-1.5 text-xs">
+                        <span :class="isFirebaseConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'" class="inline-block w-2 h-2 rounded-full shrink-0"></span>
+                        <span class="text-slate-400 hidden lg:inline">{{ isFirebaseConnected ? '雲端同步房號:' : '離線/預設房號:' }}</span>
+                        <span class="font-mono text-amber-300 font-semibold text-xs">{{ currentRoomId }}</span>
+                        <button @click="openRoomModal" title="切換或新建共享房間" class="text-slate-400 hover:text-white transition p-0.5">
+                            <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Direct Google Drive Folder Link -->
+                    <a href="https://drive.google.com/drive/folders/1pta1J4saUl99hlIQJ1b23_anBEb4OZTi" target="_blank" rel="noopener" class="hidden xl:flex items-center gap-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 px-2.5 py-1.5 rounded-lg text-xs font-medium transition" title="開啟您的專屬 Google Drive 資料夾">
+                        <i class="fa-brands fa-google-drive text-emerald-400"></i>
+                        <span>雲端資料夾</span>
+                    </a>
+
+                    <!-- Download HTML Bundle -->
+                    <button @click="downloadHtmlApp" class="hidden sm:flex bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 px-2.5 py-1.5 rounded-lg text-xs font-medium items-center gap-1.5 transition shadow-sm" title="下載含完整照片與紀錄的 HTML 軟體檔">
+                        <i class="fa-solid fa-file-code text-blue-400"></i>
+                        <span class="hidden lg:inline">匯出備份檔</span>
+                    </button>
+
+                    <button @click="showShareGuideModal = true" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition shadow-sm" title="邀請夥伴共同編輯">
+                        <i class="fa-solid fa-users"></i>
+                        <span class="hidden md:inline">邀請共同編輯</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-5 pb-20 md:pb-6">
+            
+            <!-- Tab 1: Inspection Records List -->
+            <div v-if="activeTab === 'list'" class="space-y-4">
+                
+                <!-- Action Bar & Search -->
+                <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/70 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <!-- Search Box -->
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" v-model="searchQuery" placeholder="搜尋會勘路段、地點、聯絡人姓名..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition">
+                    </div>
+
+                    <!-- Date Taxonomy Filter -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select v-model="selectedYear" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                            <option value="">全部年份</option>
+                            <option v-for="y in availableYears" :key="y" :value="y">{{ y }} 年</option>
+                        </select>
+                        <select v-model="selectedMonth" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                            <option value="">全部月份</option>
+                            <option v-for="m in availableMonths" :key="m" :value="m">{{ m }} 月</option>
+                        </select>
+                        <button v-if="selectedYear || selectedMonth || searchQuery" @click="resetFilters" class="text-xs text-slate-400 hover:text-white px-2 py-1">
+                            <i class="fa-solid fa-xmark"></i> 清除篩選
+                        </button>
+                    </div>
+
+                    <!-- New Record Button -->
+                    <button @click="openModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition shrink-0">
+                        <i class="fa-solid fa-plus text-sm"></i> 增加會勘紀錄
+                    </button>
+                </div>
+
+                <!-- Status Filter Pills (Updated Statuses) -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs custom-scrollbar">
+                    <button @click="statusFilter = 'ALL'" :class="statusFilter === 'ALL' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg border border-slate-700 transition shrink-0">
+                        全部 ({{ records.length }})
+                    </button>
+                    <button @click="statusFilter = 'UNSCHEDULED'" :class="statusFilter === 'UNSCHEDULED' ? 'bg-amber-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg border border-slate-700 transition shrink-0">
+                        行程待安排
+                    </button>
+                    <button @click="statusFilter = 'UNFEASIBLE'" :class="statusFilter === 'UNFEASIBLE' ? 'bg-rose-700 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg border border-slate-700 transition shrink-0">
+                        該路段不可施作
+                    </button>
+                    <button @click="statusFilter = 'SCHEDULED'" :class="statusFilter === 'SCHEDULED' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'" class="px-3 py-1.5 rounded-lg border border-slate-700 transition shrink-0">
+                        已排行程
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div v-if="filteredRecords.length === 0" class="bg-slate-800/60 rounded-2xl p-12 text-center border border-dashed border-slate-700 text-slate-400 space-y-3">
+                    <i class="fa-regular fa-folder-open text-4xl text-slate-500"></i>
+                    <p class="text-sm">尚未有符合條件的會勘紀錄</p>
+                    <button @click="openModal()" class="text-xs text-blue-400 hover:underline">點擊新增第一筆會勘紀錄</button>
+                </div>
+
+                <!-- Records Grid -->
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="item in filteredRecords" :key="item.id" class="bg-slate-800 rounded-2xl border border-slate-700/80 shadow-md p-4 flex flex-col justify-between hover:border-slate-600 transition space-y-3">
+                        <div class="space-y-2.5">
+                            <!-- Card Header: Status & Actions -->
+                            <div class="flex items-center justify-between">
+                                <span :class="getStatusBadgeClass(item.status)" class="px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+                                    <i :class="getStatusIcon(item.status)"></i> {{ getStatusLabel(item.status) }}
+                                </span>
+                                <div class="flex items-center space-x-1">
+                                    <button @click="openModal(item)" class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg hover:bg-slate-700 transition" title="編輯">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </button>
+                                    <button @click="promptDelete(item)" class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-700 transition" title="刪除">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Road Section Title -->
+                            <h3 class="font-bold text-white text-sm line-clamp-2 flex items-start gap-1.5">
+                                <i class="fa-solid fa-location-dot text-red-400 mt-0.5 shrink-0"></i>
+                                <span>{{ item.roadSection || '未提供路段名稱' }}</span>
+                            </h3>
+
+                            <!-- Contact Info -->
+                            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/50 flex items-center justify-between text-xs">
+                                <div class="truncate pr-2">
+                                    <span class="font-semibold text-slate-200 block truncate">{{ item.contactName || '未填寫聯絡人' }}</span>
+                                    <span class="text-slate-400 text-[11px] font-mono">{{ item.contactPhone || '無電話' }}</span>
+                                </div>
+                                <a v-if="item.contactPhone" :href="'tel:' + item.contactPhone" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 px-2.5 py-1 rounded-lg text-[11px] font-medium transition shrink-0 flex items-center gap-1">
+                                    <i class="fa-solid fa-phone"></i> 撥打
+                                </a>
+                            </div>
+
+                            <!-- Dates Info -->
+                            <div class="text-xs space-y-1 text-slate-300">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-400 text-[11px]"><i class="fa-regular fa-calendar-check text-blue-400 mr-1"></i>會勘日期：</span>
+                                    <span class="font-mono font-medium text-amber-300">{{ item.inspectionTime || '未定' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-400 text-[11px]"><i class="fa-solid fa-briefcase text-emerald-400 mr-1"></i>工作安排：</span>
+                                    <span class="font-mono font-medium text-emerald-300">{{ item.workStartTime || '未定' }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <p v-if="item.description" class="text-xs text-slate-400 line-clamp-2 bg-slate-900/40 p-2 rounded-lg border border-slate-700/30">
+                                {{ item.description }}
+                            </p>
+
+                            <!-- Photo Thumbnails -->
+                            <div v-if="item.photos && item.photos.length > 0" class="pt-1">
+                                <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+                                    <span><i class="fa-solid fa-camera text-indigo-400 mr-1"></i>現場照片 ({{ item.photos.length }})</span>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    <div v-for="(photo, idx) in item.photos.slice(0, 4)" :key="idx" @click="openLightbox(item.photos, idx)" class="aspect-square bg-slate-900 rounded-lg overflow-hidden relative cursor-pointer group border border-slate-700">
+                                        <img :src="photo.url" class="w-full h-full object-cover group-hover:scale-105 transition">
+                                        <div v-if="idx === 3 && item.photos.length > 4" class="absolute inset-0 bg-black/70 text-white font-bold text-[10px] flex items-center justify-center">
+                                            +{{ item.photos.length - 3 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-700/50 flex items-center justify-between text-[10px] text-slate-500">
+                            <span>案號: {{ (item.id || '').slice(-6) }}</span>
+                            <span>{{ item.createdBy || '團隊夥伴' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Work Schedule Timeline -->
+            <div v-if="activeTab === 'schedule'" class="space-y-4">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-blue-400"></i> 會勘後續工作排程
+                        </h2>
+                        <p class="text-xs text-slate-400">依照【工作安排日期】呈現之順序時間軸</p>
+                    </div>
+                </div>
+
+                <div v-if="scheduledTimeline.length === 0" class="bg-slate-800/60 rounded-2xl p-12 text-center text-slate-400 border border-dashed border-slate-700 text-xs">
+                    目前尚未安排任何工作執行日期。
+                </div>
+
+                <div v-else class="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-700">
+                    <div v-for="item in scheduledTimeline" :key="item.id" class="relative pl-8">
+                        <div class="absolute left-1.5 top-3 w-4 h-4 rounded-full bg-blue-500 border-4 border-slate-900"></div>
+                        <div class="bg-slate-800 rounded-xl p-4 border border-slate-700/80 shadow space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="bg-emerald-950 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-md font-mono font-bold">
+                                    <i class="fa-regular fa-clock mr-1"></i>預計執行日：{{ item.workStartTime }}
+                                </span>
+                                <span :class="getStatusBadgeClass(item.status)" class="px-2 py-0.5 rounded text-[10px] font-bold">
+                                    {{ getStatusLabel(item.status) }}
+                                </span>
+                            </div>
+                            <h3 class="font-bold text-white text-sm">{{ item.roadSection }}</h3>
+                            <p class="text-xs text-slate-300"><i class="fa-solid fa-user text-slate-400 mr-1"></i>聯絡對象：{{ item.contactName }} ({{ item.contactPhone }})</p>
+                            <p v-if="item.description" class="text-xs text-slate-400 bg-slate-900/60 p-2 rounded-lg">{{ item.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Photo Albums Grouped by Case -->
+            <div v-if="activeTab === 'gallery'" class="space-y-4">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-images text-indigo-400"></i> 現場照片 - 案子獨立相簿
+                        </h2>
+                        <p class="text-xs text-slate-400">依會勘路段地點獨立分類歸檔</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="bg-slate-900 p-1 rounded-xl border border-slate-700 flex items-center gap-1 text-xs">
+                            <button @click="galleryViewMode = 'album'" :class="galleryViewMode === 'album' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded-lg transition">
+                                <i class="fa-solid fa-folder-closed mr-1"></i> 案子相簿
+                            </button>
+                            <button @click="galleryViewMode = 'grid'" :class="galleryViewMode === 'grid' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded-lg transition">
+                                <i class="fa-solid fa-border-all mr-1"></i> 所有照片
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="allPhotos.length === 0" class="bg-slate-800/60 rounded-2xl p-12 text-center text-slate-400 border border-dashed border-slate-700 text-xs">
+                    尚無任何上傳的照片紀錄。
+                </div>
+
+                <!-- Album Mode -->
+                <div v-else-if="galleryViewMode === 'album'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="album in albumsList" :key="album.recordId" class="bg-slate-800 rounded-2xl border border-slate-700/80 overflow-hidden shadow-md space-y-2 p-3.5">
+                        <div class="flex items-start justify-between border-b border-slate-700 pb-2">
+                            <div class="pr-2 min-w-0">
+                                <h3 class="font-bold text-white text-sm truncate flex items-center gap-1.5">
+                                    <i class="fa-solid fa-folder text-amber-400"></i>
+                                    {{ album.roadSection }}
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ album.contactName }} ‧ 會勘日：{{ album.inspectionTime || '未填' }}</p>
+                            </div>
+                            <span class="bg-blue-900/60 text-blue-300 border border-blue-500/30 text-xs px-2 py-0.5 rounded-full shrink-0 font-bold">
+                                {{ album.photos.length }} 張
+                            </span>
+                        </div>
+
+                        <!-- Album Thumbnails -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div v-for="(img, idx) in album.photos.slice(0, 4)" :key="idx" @click="openLightbox(album.photos, idx)" class="aspect-video bg-slate-900 rounded-lg overflow-hidden relative cursor-pointer border border-slate-700 group">
+                                <img :src="img.url" class="w-full h-full object-cover group-hover:scale-105 transition">
+                                <div v-if="idx === 3 && album.photos.length > 4" class="absolute inset-0 bg-black/70 text-white font-bold text-xs flex items-center justify-center">
+                                    +{{ album.photos.length - 3 }} 張
+                                </div>
+                            </div>
+                        </div>
+
+                        <button @click="openLightbox(album.photos, 0)" class="w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold py-1.5 rounded-lg transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-images text-indigo-300"></i> 開啟該案相簿
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid Mode -->
+                <div v-else-if="galleryViewMode === 'grid'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div v-for="(photo, idx) in allPhotos" :key="idx" @click="openLightbox(allPhotos, idx)" class="aspect-square bg-slate-900 rounded-xl overflow-hidden relative cursor-pointer border border-slate-700 group">
+                        <img :src="photo.url" class="w-full h-full object-cover group-hover:scale-105 transition">
+                        <div class="absolute inset-x-0 bottom-0 bg-black/80 p-1.5 text-[10px] text-white truncate">
+                            {{ photo.roadSection }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Contacts Directory -->
+            <div v-if="activeTab === 'contacts'" class="space-y-4">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-address-book text-emerald-400"></i> 歷史聯絡名冊
+                        </h2>
+                        <p class="text-xs text-slate-400">系統自動記憶之歷史聯絡人與電話庫</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div v-for="contact in uniqueContactOptions" :key="contact.name" class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-white text-sm">{{ contact.name }}</p>
+                            <p class="text-xs font-mono text-slate-400">{{ contact.phone || '無電話紀錄' }}</p>
+                        </div>
+                        <a v-if="contact.phone" :href="'tel:' + contact.phone" class="bg-emerald-600 text-white p-2 rounded-lg text-xs hover:bg-emerald-500 transition">
+                            <i class="fa-solid fa-phone"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Add/Edit Record Modal -->
+        <div v-if="showModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden text-slate-100 my-auto">
+                <div class="p-4 bg-slate-900/90 border-b border-slate-700 flex items-center justify-between">
+                    <h3 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-blue-400"></i>
+                        {{ isEditMode ? '編輯會勘紀錄' : '新建會勘紀錄' }}
+                    </h3>
+                    <button @click="closeModal" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
+                    <!-- Road Section -->
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-200">會勘路段名稱 / 地點 <span class="text-red-400">*</span></label>
+                        <input type="text" v-model="form.roadSection" placeholder="例如：台西鄉和豐村 23.729217N, 120.226970E" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                    </div>
+
+                    <!-- Status Selection (Modified Title & Options) -->
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bars-staggered text-amber-400"></i> 會勘執行狀態
+                        </label>
+                        <select v-model="form.status" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-medium focus:outline-none focus:border-blue-500">
+                            <option value="UNSCHEDULED">【行程待安排】</option>
+                            <option value="UNFEASIBLE">【該路段不可施作】</option>
+                            <option value="SCHEDULED">【已排行程】</option>
+                        </select>
+                    </div>
+
+                    <!-- Contact Person & Dropdown Select Auto-fill -->
+                    <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/70 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-blue-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user text-blue-400"></i> 聯絡人資訊
+                            </span>
+                        </div>
+
+                        <!-- Dropdown Select Existing Contact -->
+                        <div class="space-y-1">
+                            <label class="text-slate-400 text-[11px]">快速選取歷史聯絡人：</label>
+                            <select @change="onSelectContactDropdown($event)" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-amber-200 focus:outline-none focus:border-blue-500">
+                                <option value="">-- 請選擇歷史聯絡人以自動帶入名稱與電話 --</option>
+                                <option v-for="c in uniqueContactOptions" :key="c.name" :value="c.name">
+                                    👤 {{ c.name }} ({{ c.phone || '無電話' }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1 relative">
+                                <label class="text-slate-300">聯絡人姓名</label>
+                                <input type="text" v-model="form.contactName" @input="onContactNameChange" placeholder="例如：林培煌 村長" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-slate-300">聯絡電話 <span class="text-[10px] text-slate-400">(格式：XXXX-XXXXXX)</span></label>
+                                <input type="text" v-model="form.contactPhone" @input="formatPhoneInput" maxlength="11" placeholder="例如：0955-250487" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simplified Dates -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-200 flex items-center gap-1">
+                                <i class="fa-regular fa-calendar-check text-blue-400"></i> 現場會勘日期
+                            </label>
+                            <input type="date" v-model="form.inspectionTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="font-bold text-slate-200 flex items-center gap-1">
+                                <i class="fa-solid fa-briefcase text-emerald-400"></i> 工作安排日期
+                            </label>
+                            <input type="date" v-model="form.workStartTime" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-1">
+                        <label class="font-bold text-slate-200">備註說明</label>
+                        <textarea v-model="form.description" rows="2" placeholder="請填寫會勘紀錄或現場補充說明..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"></textarea>
+                    </div>
+
+                    <!-- Photos Drag & Drop Area -->
+                    <div class="space-y-2">
+                        <label class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-camera text-indigo-400"></i> 現場照片紀錄 (直接拖曳圖片上傳)
+                        </label>
+                        
+                        <div @dragover.prevent @drop.prevent="handleDrop" class="border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-2xl p-4 text-center bg-slate-900/50 transition cursor-pointer relative">
+                            <input type="file" multiple accept="image/*" @change="handlePhotoUpload" class="absolute inset-0 opacity-0 cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-400 mb-1"></i>
+                            <p class="text-xs text-slate-300 font-semibold">拖曳電腦照片至此處，或點擊選取檔案</p>
+                            <p class="text-[10px] text-slate-500">照片將會進行極速壓縮處理</p>
+                        </div>
+
+                        <!-- Photos Preview Grid -->
+                        <div v-if="form.photos.length > 0" class="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-2">
+                            <div v-for="(img, idx) in form.photos" :key="idx" class="relative aspect-square rounded-lg overflow-hidden bg-slate-900 border border-slate-700 group">
+                                <img :src="img.url" class="w-full h-full object-cover">
+                                <button @click="removePhoto(idx)" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-900/90 border-t border-slate-700 flex items-center justify-end gap-2">
+                    <button @click="closeModal" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-700 transition">取消</button>
+                    <button @click="saveRecord" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> 快速儲存並更新
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room Switcher Modal -->
+        <div v-if="showRoomModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-door-open text-amber-400"></i> 切換 / 新建共享房號
+                </h3>
+                <p class="text-xs text-slate-300">請輸入開頭為 <span class="font-mono text-amber-300 font-bold">DJX</span> 的共享房號（例如：DJX-001），輸入相同房號的夥伴可即時共同編輯資料。</p>
+                
+                <input type="text" v-model="tempRoomId" placeholder="例如：DJX-001" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500 text-sm">
+
+                <div class="flex justify-end gap-2 text-xs">
+                    <button @click="showRoomModal = false" class="px-4 py-2 rounded-xl text-slate-300 hover:bg-slate-700">取消</button>
+                    <button @click="changeRoom" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl font-bold transition">確定切換</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share & Collaboration Guide Modal -->
+        <div v-if="showShareGuideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 text-xs">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-users text-blue-400"></i> 邀請夥伴共同編輯
+                    </h3>
+                    <button @click="showShareGuideModal = false" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-500/40 space-y-1.5">
+                    <p class="font-bold text-blue-200">當前共享房號：<span class="font-mono text-amber-300 font-black text-sm">{{ currentRoomId }}</span></p>
+                    <p class="text-blue-300">使用相同的房號，夥伴即可跨手機與電腦即時同步存取所有會勘紀錄與照片！</p>
+                </div>
+
+                <div class="space-y-2">
+                    <button @click="copyShareLink" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition">
+                        <i class="fa-solid fa-copy"></i> 複製共享專屬網址連結
+                    </button>
+                    <button @click="downloadHtmlApp" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow transition">
+                        <i class="fa-solid fa-file-arrow-down"></i> 下載匯出完整專案檔 (含目前資料照片)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lightbox Image Viewer -->
+        <div v-if="lightbox.show" class="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+            <button @click="lightbox.show = false" class="absolute top-4 right-4 text-white hover:text-slate-300 text-2xl z-10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <button @click="prevPhoto" class="absolute left-4 text-white hover:text-slate-300 text-2xl p-2">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="max-w-4xl max-h-[85vh] flex items-center justify-center">
+                <img :src="lightbox.images[lightbox.index] ? lightbox.images[lightbox.index].url : ''" class="max-w-full max-h-[85vh] object-contain rounded-lg">
+            </div>
+            <button @click="nextPhoto" class="absolute right-4 text-white hover:text-slate-300 text-2xl p-2">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Bottom Mobile Navigation Bar -->
+        <nav class="md:hidden fixed bottom-0 inset-x-0 bg-slate-900 border-t border-slate-800 z-20 flex justify-around p-2 text-slate-400 text-[11px]">
+            <button @click="switchTab('list')" :class="activeTab === 'list' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+                <i class="fa-solid fa-list-check text-base"></i> 會勘紀錄
+            </button>
+            <button @click="switchTab('schedule')" :class="activeTab === 'schedule' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+                <i class="fa-solid fa-calendar-days text-base"></i> 工作排程
+            </button>
+            <button @click="switchTab('gallery')" :class="activeTab === 'gallery' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+                <i class="fa-solid fa-images text-base"></i> 照片相簿
+            </button>
+            <button @click="switchTab('contacts')" :class="activeTab === 'contacts' ? 'text-blue-400 font-bold' : ''" class="flex flex-col items-center gap-0.5">
+                <i class="fa-solid fa-address-book text-base"></i> 聯絡名冊
+            </button>
+        </nav>
+
+        <!-- Toast Notification -->
+        <div v-if="toast.show" class="fixed bottom-16 md:bottom-6 right-6 bg-blue-600 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold z-50 flex items-center gap-2 animate-bounce">
+            <i class="fa-solid fa-circle-check text-sm"></i> {{ toast.message }}
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 🔑 請在此處填入您的 Firebase 設定檔：
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        let isFirebaseReady = false;
+
+        try {
+            if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                signInAnonymously(auth).catch(err => console.warn('Firebase Auth error:', err));
+                db = getFirestore(app);
+                isFirebaseReady = true;
+            }
+        } catch (e) {
+            console.warn('Firebase Initialization skipped or missing keys:', e);
+        }
+
+        const { createApp } = Vue;
+
+        const vueApp = createApp({
+            data() {
+                return {
+                    activeTab: 'list',
+                    galleryViewMode: 'album',
+                    records: [],
+                    searchQuery: '',
+                    statusFilter: 'ALL',
+                    savedContacts: JSON.parse(localStorage.getItem('saved_contacts') || '[]'),
+                    
+                    selectedYear: '',
+                    selectedMonth: '',
+                    
+                    currentRoomId: localStorage.getItem('last_inspection_room_id') || 'DJX-001',
+                    tempRoomId: '',
+                    showModal: false,
+                    showRoomModal: false,
+                    showShareGuideModal: false,
+                    isEditMode: false,
+                    isFirebaseConnected: isFirebaseReady,
+
+                    form: {
+                        id: '',
+                        roadSection: '',
+                        status: 'UNSCHEDULED', // Default to 行程待安排
+                        contactName: '',
+                        contactPhone: '',
+                        inspectionTime: '',
+                        workStartTime: '',
+                        description: '',
+                        photos: []
+                    },
+
+                    lightbox: {
+                        show: false,
+                        images: [],
+                        index: 0
+                    },
+
+                    toast: {
+                        show: false,
+                        message: ''
+                    },
+
+                    unsubscribeDb: null
+                }
+            },
+            computed: {
+                filteredRecords() {
+                    let list = this.records || [];
+                    if (this.statusFilter !== 'ALL') {
+                        list = list.filter(r => r.status === this.statusFilter);
+                    }
+                    if (this.searchQuery.trim()) {
+                        const q = this.searchQuery.toLowerCase();
+                        list = list.filter(r => 
+                            (r.roadSection || '').toLowerCase().includes(q) || 
+                            (r.contactName || '').toLowerCase().includes(q)
+                        );
+                    }
+                    if (this.selectedYear) {
+                        list = list.filter(r => (r.inspectionTime || '').startsWith(this.selectedYear));
+                    }
+                    if (this.selectedMonth) {
+                        const mStr = '-' + String(this.selectedMonth).padStart(2, '0');
+                        list = list.filter(r => (r.inspectionTime || '').includes(mStr));
+                    }
+                    return list;
+                },
+                availableYears() {
+                    const set = new Set();
+                    (this.records || []).forEach(r => {
+                        if (r.inspectionTime) {
+                            const y = r.inspectionTime.split('-')[0];
+                            if (y) set.add(y);
+                        }
+                    });
+                    return Array.from(set).sort().reverse();
+                },
+                availableMonths() {
+                    return ['01','02','03','04','05','06','07','08','09','10','11','12'];
+                },
+                albumsList() {
+                    return this.filteredRecords
+                        .filter(item => item && item.photos && item.photos.length > 0)
+                        .map(item => ({
+                            recordId: item.id,
+                            roadSection: item.roadSection || '未命名路段',
+                            contactName: item.contactName || '',
+                            inspectionTime: item.inspectionTime || '',
+                            photos: item.photos
+                        }));
+                },
+                allPhotos() {
+                    const list = [];
+                    this.filteredRecords.forEach(r => {
+                        if (r.photos && r.photos.length > 0) {
+                            r.photos.forEach(p => {
+                                list.push({
+                                    url: p.url,
+                                    roadSection: r.roadSection || '未命名路段'
+                                });
+                            });
+                        }
+                    });
+                    return list;
+                },
+                uniqueContactOptions() {
+                    const map = new Map();
+                    (this.savedContacts || []).forEach(c => {
+                        if (c && c.name) map.set(c.name, { name: c.name, phone: c.phone || '' });
+                    });
+                    (this.records || []).forEach(r => {
+                        if (r && r.contactName && !map.has(r.contactName)) {
+                            map.set(r.contactName, { name: r.contactName, phone: r.contactPhone || '' });
+                        }
+                    });
+                    return Array.from(map.values());
+                },
+                scheduledTimeline() {
+                    return (this.records || [])
+                        .filter(r => r.workStartTime)
+                        .sort((a, b) => (a.workStartTime || '').localeCompare(b.workStartTime || ''));
+                }
+            },
+            mounted() {
+                // Read query parameter for room if present
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomParam = urlParams.get('room');
+                if (roomParam) {
+                    this.currentRoomId = roomParam;
+                    localStorage.setItem('last_inspection_room_id', roomParam);
+                }
+
+                if (window.__INITIAL_DATA__) {
+                    try {
+                        if (window.__INITIAL_DATA__.records) {
+                            this.records = window.__INITIAL_DATA__.records;
+                        }
+                        if (window.__INITIAL_DATA__.savedContacts) {
+                            this.savedContacts = window.__INITIAL_DATA__.savedContacts;
+                        }
+                        if (window.__INITIAL_DATA__.roomId) {
+                            this.currentRoomId = window.__INITIAL_DATA__.roomId;
+                        }
+                    } catch(e) {
+                        console.warn(e);
+                    }
+                } else {
+                    const stored = localStorage.getItem('local_records_' + this.currentRoomId);
+                    if (stored) {
+                        try { this.records = JSON.parse(stored); } catch(e){}
+                    }
+                }
+
+                // Subscribe to Firebase if configured
+                this.setupFirebaseRealtime();
+            },
+            methods: {
+                setupFirebaseRealtime() {
+                    if (!isFirebaseReady || !db) return;
+                    if (this.unsubscribeDb) this.unsubscribeDb();
+
+                    const roomCol = collection(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId);
+                    this.unsubscribeDb = onSnapshot(roomCol, (snapshot) => {
+                        const cloudRecords = [];
+                        snapshot.forEach((doc) => {
+                            cloudRecords.push({ id: doc.id, ...doc.data() });
+                        });
+                        if (cloudRecords.length > 0) {
+                            this.records = cloudRecords;
+                            localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+                        }
+                    }, (err) => {
+                        console.warn("Firebase snapshot listener error:", err);
+                    });
+                },
+                switchTab(tab) {
+                    this.activeTab = tab;
+                },
+                resetFilters() {
+                    this.selectedYear = '';
+                    this.selectedMonth = '';
+                    this.searchQuery = '';
+                },
+                openModal(record = null) {
+                    if (record) {
+                        this.isEditMode = true;
+                        this.form = JSON.parse(JSON.stringify(record));
+                    } else {
+                        this.isEditMode = false;
+                        this.form = {
+                            id: 'REC-' + Date.now(),
+                            roadSection: '',
+                            status: 'UNSCHEDULED',
+                            contactName: '',
+                            contactPhone: '',
+                            inspectionTime: new Date().toISOString().split('T')[0],
+                            workStartTime: '',
+                            description: '',
+                            photos: []
+                        };
+                    }
+                    this.showModal = true;
+                },
+                closeModal() {
+                    this.showModal = false;
+                },
+                onSelectContactDropdown(e) {
+                    const selectedName = e.target.value;
+                    if (!selectedName) return;
+                    const match = this.uniqueContactOptions.find(c => c.name === selectedName);
+                    if (match) {
+                        this.form.contactName = match.name;
+                        this.form.contactPhone = match.phone || '';
+                    }
+                    e.target.value = ""; // Reset dropdown selection
+                },
+                onContactNameChange() {
+                    const match = this.uniqueContactOptions.find(c => c.name === this.form.contactName);
+                    if (match) {
+                        this.form.contactPhone = match.phone || '';
+                    }
+                },
+                formatPhoneInput(e) {
+                    let val = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+                    if (val.length > 10) {
+                        val = val.slice(0, 10);
+                    }
+                    if (val.length > 4) {
+                        val = val.slice(0, 4) + '-' + val.slice(4);
+                    }
+                    this.form.contactPhone = val;
+                },
+                handleDrop(e) {
+                    const files = e.dataTransfer.files;
+                    if (files && files.length > 0) {
+                        this.processPhotoFiles(files);
+                    }
+                },
+                handlePhotoUpload(e) {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                        this.processPhotoFiles(files);
+                    }
+                },
+                processPhotoFiles(files) {
+                    Array.from(files).forEach(file => {
+                        if (!file.type.startsWith('image/')) return;
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const maxDim = 600;
+                                let w = img.width, h = img.height;
+                                if (w > maxDim || h > maxDim) {
+                                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                                }
+                                canvas.width = w; canvas.height = h;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, w, h);
+                                const compressedUrl = canvas.toDataURL('image/jpeg', 0.55);
+                                this.form.photos.push({ url: compressedUrl });
+                            };
+                            img.src = evt.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                },
+                removePhoto(idx) {
+                    this.form.photos.splice(idx, 1);
+                },
+                async saveRecord() {
+                    if (!this.form.roadSection.trim()) {
+                        alert('請輸入會勘路段名稱！');
+                        return;
+                    }
+                    // Auto-save contact info if provided
+                    if (this.form.contactName) {
+                        const existsIndex = this.savedContacts.findIndex(c => c.name === this.form.contactName);
+                        if (existsIndex === -1) {
+                            this.savedContacts.push({ name: this.form.contactName, phone: this.form.contactPhone });
+                        } else {
+                            this.savedContacts[existsIndex].phone = this.form.contactPhone;
+                        }
+                        localStorage.setItem('saved_contacts', JSON.stringify(this.savedContacts));
+                    }
+
+                    if (this.isEditMode) {
+                        const idx = this.records.findIndex(r => r.id === this.form.id);
+                        if (idx !== -1) this.records[idx] = { ...this.form };
+                    } else {
+                        this.records.unshift({ ...this.form });
+                    }
+
+                    localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+
+                    // Sync to Firebase if available
+                    if (isFirebaseReady && db) {
+                        try {
+                            const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, this.form.id);
+                            await setDoc(docRef, { ...this.form });
+                        } catch (err) {
+                            console.warn("Failed to sync to Firebase:", err);
+                        }
+                    }
+
+                    this.showModal = false;
+                    this.statusFilter = 'ALL';
+                    this.activeTab = 'list';
+                    this.showToast('已儲存資料並完成更新！');
+                },
+                async promptDelete(item) {
+                    if (confirm(`確定要刪除「${item.roadSection}」此筆紀錄嗎？`)) {
+                        this.records = this.records.filter(r => r.id !== item.id);
+                        localStorage.setItem('local_records_' + this.currentRoomId, JSON.stringify(this.records));
+
+                        if (isFirebaseReady && db) {
+                            try {
+                                const docRef = doc(db, 'artifacts', 'inspection_app', 'public', 'data', 'room_' + this.currentRoomId, item.id);
+                                await deleteDoc(docRef);
+                            } catch (err) {
+                                console.warn("Failed to delete from Firebase:", err);
+                            }
+                        }
+                        this.showToast('已刪除紀錄！');
+                    }
+                },
+                openRoomModal() {
+                    this.tempRoomId = this.currentRoomId;
+                    this.showRoomModal = true;
+                },
+                changeRoom() {
+                    let r = this.tempRoomId.trim().toUpperCase();
+                    if (!r) return;
+                    if (!r.startsWith('DJX')) r = 'DJX-' + r.replace(/^DJX-?/, '');
+                    this.currentRoomId = r;
+                    localStorage.setItem('last_inspection_room_id', r);
+                    this.showRoomModal = false;
+                    this.setupFirebaseRealtime();
+                    this.showToast('已切換至房間：' + r);
+                },
+                openLightbox(photos, index) {
+                    this.lightbox.images = photos;
+                    this.lightbox.index = index;
+                    this.lightbox.show = true;
+                },
+                prevPhoto() {
+                    if (this.lightbox.index > 0) this.lightbox.index--;
+                    else this.lightbox.index = this.lightbox.images.length - 1;
+                },
+                nextPhoto() {
+                    if (this.lightbox.index < this.lightbox.images.length - 1) this.lightbox.index++;
+                    else this.lightbox.index = 0;
+                },
+                copyShareLink() {
+                    const url = window.location.origin + window.location.pathname + '?room=' + this.currentRoomId;
+                    const el = document.createElement('textarea');
+                    el.value = url;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    this.showToast('已複製共享網址連結！');
+                },
+                downloadHtmlApp() {
+                    let fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+                    const dataJson = JSON.stringify({
+                        roomId: this.currentRoomId,
+                        records: this.records,
+                        savedContacts: this.savedContacts
+                    }).replace(/</g, '\\u003c');
+
+                    const bundleScript = `<script>window.__INITIAL_DATA__ = ${dataJson};<\/script>`;
+                    fullHtml = fullHtml.replace('</body>', `${bundleScript}\n</body>`);
+
+                    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `會勘紀錄_專案檔_${this.currentRoomId}.html`;
+                    link.click();
+                    this.showToast('已成功匯出含完整資料的 HTML 軟體檔！');
+                },
+                showToast(msg) {
+                    this.toast.message = msg;
+                    this.toast.show = true;
+                    setTimeout(() => { this.toast.show = false; }, 2500);
+                },
+                getStatusBadgeClass(status) {
+                    if (status === 'SCHEDULED') return 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40';
+                    if (status === 'UNFEASIBLE') return 'bg-rose-950/80 text-rose-300 border border-rose-500/40';
+                    return 'bg-amber-950/80 text-amber-300 border border-amber-500/40';
+                },
+                getStatusIcon(status) {
+                    if (status === 'SCHEDULED') return 'fa-solid fa-calendar-check text-emerald-400';
+                    if (status === 'UNFEASIBLE') return 'fa-solid fa-ban text-rose-400';
+                    return 'fa-solid fa-clock text-amber-400';
+                },
+                getStatusLabel(status) {
+                    if (status === 'SCHEDULED') return '已排行程';
+                    if (status === 'UNFEASIBLE') return '該路段不可施作';
+                    return '行程待安排';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
